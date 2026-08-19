@@ -316,6 +316,21 @@ def get_live_fusion_score():
     return assessment
 
 
+from fastapi.staticfiles import StaticFiles
+
+dashboard_dir = root_dir / "apps" / "dashboard"
+if dashboard_dir.exists():
+    app.mount("/dashboard", StaticFiles(directory=str(dashboard_dir), html=True), name="dashboard")
+
+@app.get("/")
+def root_redirect():
+    """Redirects root path to dashboard."""
+    index_file = dashboard_dir / "index.html"
+    if index_file.exists():
+        return FileResponse(str(index_file))
+    return {"message": "Forest Fire Guardian Edge Gateway API is running. Dashboard available at /dashboard."}
+
+
 SERVER_START_TIME = time.time()
 
 if __name__ == "__main__":
