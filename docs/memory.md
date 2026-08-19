@@ -15,8 +15,8 @@
 | **Phase 0** | Monorepo Structure & Environment Setup | Completed | Verified | Pushed (`main`) |
 | **Phase 1** | Sensor Classification Model (`packages/ml-classifier/`) | Completed | Verified (89.8% Acc, 0.898 F1) | Pushed (`main`) |
 | **Phase 2** | Pretrained CV Inference Wrapper (`packages/cv-inference/`) | Completed | Verified (SigLIP2 / Vision Tests OK) | Pushed (`main`) |
-| **Phase 3** | Deforestation Risk Layer (`packages/deforestation/`) | In Progress | Pending | Pending |
-| **Phase 4** | Hardware Firmware & Edge Gateway (`apps/firmware/`, `apps/edge-gateway/`) | Not Started | Pending | Pending |
+| **Phase 3** | Deforestation Risk Layer (`packages/deforestation/`) | Completed | Verified (Sentinel-2 NDVI / Spatial Cache OK) | Pushed (`main`) |
+| **Phase 4** | Hardware Firmware & Edge Gateway (`apps/firmware/`, `apps/edge-gateway/`) | In Progress | Pending | Pending |
 | **Phase 5** | Weather API Integration (`apps/edge-gateway/fusion/`) | Not Started | Pending | Pending |
 | **Phase 6** | Rule-Based Multi-Modal Fusion Engine (`packages/fusion-engine/`) | Not Started | Pending | Pending |
 | **Phase 7** | Minimal Web Dashboard (`apps/dashboard/`) | Not Started | Pending | Pending |
@@ -67,6 +67,21 @@
   - [x] All 4 unit tests passing (`Ran 4 tests ... OK`).
   - [x] Working: Yes.
 
+### Phase 3: Deforestation Risk Layer (`packages/deforestation/`)
+- **Task**: Implement Sentinel-2 NDVI mathematical computation $(B8 - B4)/(B8 + B4)$, vegetation degradation and fuel flammability classification, spatial grid generator for Margalla Hills / test regions, spatial cache export (`cache/risk_layer.json`), and coordinate lookup service.
+- **Why**: Satellite-derived vegetation health and deforestation degradation provide long-term baseline vulnerability scores, establishing whether dry fuel biomass exists at the IoT node's GPS location.
+- **What was done**:
+  - Built `packages/deforestation/compute_ndvi.py`: Formula calculating Sentinel-2 NDVI with division-by-zero protection, 5-tier classification mapping NDVI to fire vulnerability scores $[0.10, 0.85]$, GEE integration pipeline, and spatial grid generator generating 390 geographic nodes for Margalla Hills National Park.
+  - Built `packages/deforestation/lookup.py`: Implemented `DeforestationLookupService` and `get_deforestation_risk(lat, lon)` performing closest grid node matching, Haversine distance calculation, and normalized `deforestation_score` $[0.0, 1.0]$.
+  - Built `packages/deforestation/tests/test_deforestation.py`: 4 unit tests verifying NDVI math, edge tier classification, JSON cache generation, and spatial coordinate lookup.
+- **Status / Verification**:
+  - [x] Accurate mathematical NDVI calculation and array vectorization verified.
+  - [x] Generated 390 grid cells in `packages/deforestation/cache/risk_layer.json`.
+  - [x] Coordinate lookup tested for Margalla Hills coordinates `(33.7431, 73.0232)` with sub-kilometer nearest node resolution.
+  - [x] All 4 unit tests passing (`Ran 4 tests in 0.037s ... OK`).
+  - [x] Working: Yes.
+
 ---
+
 
 
