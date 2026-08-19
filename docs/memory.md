@@ -16,8 +16,8 @@
 | **Phase 1** | Sensor Classification Model (`packages/ml-classifier/`) | Completed | Verified (89.8% Acc, 0.898 F1) | Pushed (`main`) |
 | **Phase 2** | Pretrained CV Inference Wrapper (`packages/cv-inference/`) | Completed | Verified (SigLIP2 / Vision Tests OK) | Pushed (`main`) |
 | **Phase 3** | Deforestation Risk Layer (`packages/deforestation/`) | Completed | Verified (Sentinel-2 NDVI / Spatial Cache OK) | Pushed (`main`) |
-| **Phase 4** | Hardware Firmware & Edge Gateway (`apps/firmware/`, `apps/edge-gateway/`) | In Progress | Pending | Pending |
-| **Phase 5** | Weather API Integration (`apps/edge-gateway/fusion/`) | Not Started | Pending | Pending |
+| **Phase 4** | Hardware Firmware & Edge Gateway (`apps/firmware/`, `apps/edge-gateway/`) | Completed | Verified (ESP32 Ingest API / Tests OK) | Pushed (`main`) |
+| **Phase 5** | Weather API Integration (`apps/edge-gateway/fusion/`) | In Progress | Pending | Pending |
 | **Phase 6** | Rule-Based Multi-Modal Fusion Engine (`packages/fusion-engine/`) | Not Started | Pending | Pending |
 | **Phase 7** | Minimal Web Dashboard (`apps/dashboard/`) | Not Started | Pending | Pending |
 
@@ -81,7 +81,23 @@
   - [x] All 4 unit tests passing (`Ran 4 tests in 0.037s ... OK`).
   - [x] Working: Yes.
 
+### Phase 4: Hardware Node Firmware & Edge Gateway Ingest (`apps/firmware/`, `apps/edge-gateway/`)
+- **Task**: Develop Arduino/PlatformIO firmware sketches for ESP32 sensor node and ESP32-CAM video node, build FastAPI telemetry ingestion service on Raspberry Pi, calculate live rate-of-change deltas ($\Delta T, \Delta RH$), execute sensor ML classification and CV processing, log data to disk, and write integration tests.
+- **Why**: Connects physical edge IoT sensing hardware in the field (DHT22, MQ-2, Flame sensor, OV2640, LiFePO4 battery monitoring) to the Raspberry Pi edge computing server over Wi-Fi.
+- **What was done**:
+  - Built `apps/firmware/sensor-node/`: `sensor-node.ino` and `platformio.ini` reading DHT22 (Temp/RH), MQ-2 gas/smoke ADC, flame sensor digital/analog pins, and LiFePO4 battery voltage divider, sending JSON telemetry payloads over HTTP POST.
+  - Built `apps/firmware/cam-node/`: `cam-node.ino` and `platformio.ini` configuring AI-Thinker OV2640 camera, PSRAM, JPEG compression, capturing frames every 10s, and streaming via HTTP POST.
+  - Built `apps/edge-gateway/ingest/`: `models.py` and `server.py` providing FastAPI endpoints for sensor ingestion (`POST /api/v1/telemetry/sensor`), camera stream (`POST /api/v1/telemetry/camera/frame`), live consolidated state (`GET /api/v1/telemetry/latest`), historical charts (`GET /api/v1/telemetry/history`), and health checks.
+  - Built `apps/edge-gateway/tests/test_gateway_ingest.py`: 5 unit/integration tests verifying sensor ingestion, temporal delta computation ($\Delta T=15^\circ\text{C}, \Delta RH=-25\%$), camera frame processing, and live history buffering.
+- **Status / Verification**:
+  - [x] Firmware sketches created for Arduino IDE & PlatformIO with full pin definitions and LiFePO4 power telemetry.
+  - [x] Edge gateway endpoints validated with Pydantic schemas.
+  - [x] All 5 gateway unit tests passing (`Ran 5 tests in 12.173s ... OK`).
+  - [x] Total 17 unit tests passing across all 4 project packages.
+  - [x] Working: Yes.
+
 ---
+
 
 
 
