@@ -1,0 +1,16 @@
+{
+  "version": 2,
+  "name": "forest-fire-guardian",
+  "builds": [
+    {
+      "src": "apps/dashboard/**",
+      "use": "@vercel/static"
+    }
+  ],
+  "routes": [
+    {
+      "src": "/(.*)",
+      "dest": "/apps/dashboard/$1"
+    }
+  ]
+}

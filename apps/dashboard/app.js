@@ -2,10 +2,12 @@
 
 let telemetryChart = null;
 const POLLING_INTERVAL_MS = 2000;
+let apiBaseUrl = localStorage.getItem("fg_gateway_url") || "";
 
 // Initialize Dashboard
 document.addEventListener("DOMContentLoaded", () => {
   initChart();
+  setupSettingsModal();
   fetchDashboardData();
   setInterval(fetchDashboardData, POLLING_INTERVAL_MS);
 
@@ -13,6 +15,45 @@ document.addEventListener("DOMContentLoaded", () => {
     fetchDashboardData(true);
   });
 });
+
+function setupSettingsModal() {
+  const modal = document.getElementById("settings-modal");
+  const btnSettings = document.getElementById("btn-settings");
+  const btnClose = document.getElementById("btn-close-settings");
+  const btnSave = document.getElementById("btn-save-gateway-url");
+  const btnReset = document.getElementById("btn-reset-gateway-url");
+  const inputUrl = document.getElementById("input-gateway-url");
+
+  inputUrl.value = apiBaseUrl;
+
+  btnSettings.addEventListener("click", () => {
+    inputUrl.value = apiBaseUrl;
+    modal.classList.remove("hidden");
+  });
+
+  btnClose.addEventListener("click", () => modal.classList.add("hidden"));
+
+  btnSave.addEventListener("click", () => {
+    let val = inputUrl.value.trim();
+    if (val.endsWith("/")) val = val.slice(0, -1);
+    apiBaseUrl = val;
+    localStorage.setItem("fg_gateway_url", apiBaseUrl);
+    modal.classList.add("hidden");
+    fetchDashboardData(true);
+  });
+
+  btnReset.addEventListener("click", () => {
+    apiBaseUrl = "";
+    localStorage.removeItem("fg_gateway_url");
+    inputUrl.value = "";
+    modal.classList.add("hidden");
+    fetchDashboardData(true);
+  });
+}
+
+function getApiUrl(path) {
+  return `${apiBaseUrl}${path}`;
+}
 
 // Initialize Chart.js Real-time Telemetry Graph
 function initChart() {
@@ -91,13 +132,92 @@ function initChart() {
   });
 }
 
+// Demo fallback data when gateway is offline or previewing on cloud without Raspberry Pi
+let demoHistory = [];
+function generateDemoData() {
+  const now = Date.now() / 1000;
+  if (demoHistory.length === 0) {
+    for (let i = 20; i >= 0; i--) {
+      demoHistory.push({
+        timestamp: now - (i * 5),
+        telemetry: {
+          temperature_c: 24.5 + Math.sin(i * 0.5) * 2,
+          humidity_percent: 58.0 + Math.cos(i * 0.5) * 4,
+          gas_ppm: 22.0 + Math.random() * 5,
+          smoke_ppm: 12.0,
+          flame_detected: false
+        }
+      });
+    }
+  }
+
+  return {
+    fusion: {
+      fusion: {
+        confidence_score: 0.142,
+        severity_tier: "Safe",
+        tier_badge: "🟢",
+        tier_id: 0,
+        critical_alert: false,
+        is_override: false,
+        sub_scores: {
+          sensor_score: 0.128,
+          vision_score: 0.050,
+          weather_score: 0.280,
+          deforestation_score: 0.250
+        }
+      },
+      weather: {
+        temperature_c: 32.0,
+        humidity_percent: 42.0,
+        wind_speed_kmh: 14.5,
+        rain_mm: 0.0,
+        condition: "Clear Sky / Light Breeze",
+        source: "OpenWeatherMap Live API"
+      },
+      deforestation: {
+        ndvi: 0.478,
+        vegetation_desc: "Dense Healthy Forest Canopy",
+        matched_lat: 33.74,
+        matched_lon: 73.02
+      }
+    },
+    latest: {
+      sensor: {
+        node_id: "ESP32_SENSOR_NODE_01",
+        latitude: 33.7431,
+        longitude: 73.0232,
+        telemetry: {
+          temperature_c: 25.4,
+          humidity_percent: 56.2,
+          gas_ppm: 24.8,
+          smoke_ppm: 14.1,
+          flame_detected: false
+        },
+        power: {
+          battery_voltage_v: 3.34,
+          battery_percent: 85,
+          solar_charging: true
+        }
+      },
+      vision: {
+        node_id: "ESP32_CAM_01",
+        predicted_label: "Normal",
+        confidence: 0.992,
+        latency_ms: 45.2
+      }
+    },
+    history: { records: demoHistory }
+  };
+}
+
 // Fetch all live gateway endpoints
 async function fetchDashboardData(manual = false) {
   try {
     const [resFusion, resLatest, resHistory] = await Promise.all([
-      fetch("/api/v1/fusion/score"),
-      fetch("/api/v1/telemetry/latest"),
-      fetch("/api/v1/telemetry/history?limit=30")
+      fetch(getApiUrl("/api/v1/fusion/score")),
+      fetch(getApiUrl("/api/v1/telemetry/latest")),
+      fetch(getApiUrl("/api/v1/telemetry/history?limit=30"))
     ]);
 
     if (resFusion.ok && resLatest.ok) {
@@ -112,12 +232,20 @@ async function fetchDashboardData(manual = false) {
 
       setConnectionStatus(true);
     } else {
-      setConnectionStatus(false);
+      useDemoFallback();
     }
   } catch (err) {
-    console.warn("Gateway poll failed:", err);
-    setConnectionStatus(false);
+    useDemoFallback();
   }
+}
+
+function useDemoFallback() {
+  const demo = generateDemoData();
+  updateFusionBanner(demo.fusion.fusion);
+  updatePillars(demo.fusion, demo.latest);
+  updateHardwareStatus(demo.latest.sensor);
+  updateChart(demo.history.records);
+  setConnectionStatus(false);
 }
 
 // Update Master Fusion Banner
@@ -216,7 +344,7 @@ function updatePillars(fusionData, latestData) {
 
   // Refresh image timestamp
   const imgEl = document.getElementById("camera-frame");
-  imgEl.src = `/api/v1/telemetry/camera/latest_image?t=${new Date().getTime()}`;
+  imgEl.src = `${getApiUrl("/api/v1/telemetry/camera/latest_image")}?t=${new Date().getTime()}`;
   document.getElementById("cam-timestamp").textContent = new Date().toLocaleTimeString();
 
   // 3. Weather Pillar
@@ -300,10 +428,10 @@ function setConnectionStatus(online) {
   const text = document.getElementById("conn-status");
   if (online) {
     dot.className = "w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse";
-    text.textContent = "Live (Connected)";
+    text.textContent = apiBaseUrl ? `Connected: ${apiBaseUrl}` : "Live (Local Gateway)";
   } else {
-    dot.className = "w-2.5 h-2.5 rounded-full bg-rose-500";
-    text.textContent = "Offline (Reconnecting...)";
+    dot.className = "w-2.5 h-2.5 rounded-full bg-amber-500";
+    text.textContent = apiBaseUrl ? "Reconnecting to Gateway..." : "Cloud Preview (Simulated Telemetry)";
   }
 }
 
@@ -346,13 +474,33 @@ async function simulateTelemetry(scenario) {
   }
 
   try {
-    await fetch("/api/v1/telemetry/sensor", {
+    await fetch(getApiUrl("/api/v1/telemetry/sensor"), {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(payload)
     });
     fetchDashboardData(true);
   } catch (err) {
-    console.error("Simulation failed:", err);
+    // In cloud preview fallback mode, append to local demo history
+    demoHistory.push({
+      timestamp: Date.now() / 1000,
+      telemetry: payload.telemetry
+    });
+    if (demoHistory.length > 30) demoHistory.shift();
+
+    const fusionScores = {
+      safe: { score: 0.14, tier: "Safe", badge: "🟢", id: 0, override: false },
+      warning: { score: 0.52, tier: "Warning", badge: "🟡", id: 1, override: false },
+      fire: { score: 0.95, tier: "Fire Detected", badge: "🔴", id: 3, override: true }
+    }[scenario];
+
+    updateFusionBanner({
+      confidence_score: fusionScores.score,
+      severity_tier: fusionScores.tier,
+      tier_badge: fusionScores.badge,
+      tier_id: fusionScores.id,
+      is_override: fusionScores.override
+    });
+    updateChart(demoHistory);
   }
 }
