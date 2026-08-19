@@ -1,0 +1,240 @@
+{
+  "best_model_name": "RandomForest",
+  "feature_columns": [
+    "Temperature",
+    "RH",
+    "Ws",
+    "Rain",
+    "Gas_ppm",
+    "Smoke_ppm",
+    "Delta_Temp",
+    "Delta_RH"
+  ],
+  "risk_tiers": {
+    "0": "Safe",
+    "1": "Warning",
+    "2": "High Risk",
+    "3": "Fire Detected"
+  },
+  "metrics": {
+    "cv_f1_macro_mean": 0.8566762831961714,
+    "cv_f1_macro_std": 0.05159081627738088,
+    "test_accuracy": 0.8979591836734694,
+    "test_f1_macro": 0.8982214156079855,
+    "test_precision_macro": 0.8948717948717949,
+    "test_recall_macro": 0.9048076923076922,
+    "classification_report": {
+      "Safe": {
+        "precision": 0.9,
+        "recall": 1.0,
+        "f1-score": 0.9473684210526315,
+        "support": 9.0
+      },
+      "Warning": {
+        "precision": 0.8461538461538461,
+        "recall": 0.9166666666666666,
+        "f1-score": 0.88,
+        "support": 12.0
+      },
+      "High Risk": {
+        "precision": 0.8333333333333334,
+        "recall": 0.7692307692307693,
+        "f1-score": 0.8,
+        "support": 13.0
+      },
+      "Fire Detected": {
+        "precision": 1.0,
+        "recall": 0.9333333333333333,
+        "f1-score": 0.9655172413793104,
+        "support": 15.0
+      },
+      "accuracy": 0.8979591836734694,
+      "macro avg": {
+        "precision": 0.8948717948717949,
+        "recall": 0.9048076923076922,
+        "f1-score": 0.8982214156079855,
+        "support": 49.0
+      },
+      "weighted avg": {
+        "precision": 0.8997383568812141,
+        "recall": 0.8979591836734694,
+        "f1-score": 0.897328049187007,
+        "support": 49.0
+      }
+    },
+    "confusion_matrix": [
+      [
+        9,
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        11,
+        1,
+        0
+      ],
+      [
+        1,
+        2,
+        10,
+        0
+      ],
+      [
+        0,
+        0,
+        1,
+        14
+      ]
+    ]
+  },
+  "all_model_results": {
+    "RandomForest": {
+      "cv_f1_macro_mean": 0.8566762831961714,
+      "cv_f1_macro_std": 0.05159081627738088,
+      "test_accuracy": 0.8979591836734694,
+      "test_f1_macro": 0.8982214156079855,
+      "test_precision_macro": 0.8948717948717949,
+      "test_recall_macro": 0.9048076923076922,
+      "classification_report": {
+        "Safe": {
+          "precision": 0.9,
+          "recall": 1.0,
+          "f1-score": 0.9473684210526315,
+          "support": 9.0
+        },
+        "Warning": {
+          "precision": 0.8461538461538461,
+          "recall": 0.9166666666666666,
+          "f1-score": 0.88,
+          "support": 12.0
+        },
+        "High Risk": {
+          "precision": 0.8333333333333334,
+          "recall": 0.7692307692307693,
+          "f1-score": 0.8,
+          "support": 13.0
+        },
+        "Fire Detected": {
+          "precision": 1.0,
+          "recall": 0.9333333333333333,
+          "f1-score": 0.9655172413793104,
+          "support": 15.0
+        },
+        "accuracy": 0.8979591836734694,
+        "macro avg": {
+          "precision": 0.8948717948717949,
+          "recall": 0.9048076923076922,
+          "f1-score": 0.8982214156079855,
+          "support": 49.0
+        },
+        "weighted avg": {
+          "precision": 0.8997383568812141,
+          "recall": 0.8979591836734694,
+          "f1-score": 0.897328049187007,
+          "support": 49.0
+        }
+      },
+      "confusion_matrix": [
+        [
+          9,
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          11,
+          1,
+          0
+        ],
+        [
+          1,
+          2,
+          10,
+          0
+        ],
+        [
+          0,
+          0,
+          1,
+          14
+        ]
+      ]
+    },
+    "GradientBoosting": {
+      "cv_f1_macro_mean": 0.8572614437991677,
+      "cv_f1_macro_std": 0.04402740764254509,
+      "test_accuracy": 0.8775510204081632,
+      "test_f1_macro": 0.8788624412490111,
+      "test_precision_macro": 0.8756410256410256,
+      "test_recall_macro": 0.8839743589743589,
+      "classification_report": {
+        "Safe": {
+          "precision": 0.9,
+          "recall": 1.0,
+          "f1-score": 0.9473684210526315,
+          "support": 9.0
+        },
+        "Warning": {
+          "precision": 0.8333333333333334,
+          "recall": 0.8333333333333334,
+          "f1-score": 0.8333333333333334,
+          "support": 12.0
+        },
+        "High Risk": {
+          "precision": 0.7692307692307693,
+          "recall": 0.7692307692307693,
+          "f1-score": 0.7692307692307693,
+          "support": 13.0
+        },
+        "Fire Detected": {
+          "precision": 1.0,
+          "recall": 0.9333333333333333,
+          "f1-score": 0.9655172413793104,
+          "support": 15.0
+        },
+        "accuracy": 0.8775510204081632,
+        "macro avg": {
+          "precision": 0.8756410256410256,
+          "recall": 0.8839743589743589,
+          "f1-score": 0.8788624412490111,
+          "support": 49.0
+        },
+        "weighted avg": {
+          "precision": 0.8795918367346939,
+          "recall": 0.8775510204081632,
+          "f1-score": 0.8777362124523131,
+          "support": 49.0
+        }
+      },
+      "confusion_matrix": [
+        [
+          9,
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          10,
+          2,
+          0
+        ],
+        [
+          1,
+          2,
+          10,
+          0
+        ],
+        [
+          0,
+          0,
+          1,
+          14
+        ]
+      ]
+    }
+  }
+}
