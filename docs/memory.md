@@ -14,8 +14,8 @@
 |---|---|---|---|---|
 | **Phase 0** | Monorepo Structure & Environment Setup | Completed | Verified | Pushed (`main`) |
 | **Phase 1** | Sensor Classification Model (`packages/ml-classifier/`) | Completed | Verified (89.8% Acc, 0.898 F1) | Pushed (`main`) |
-| **Phase 2** | Pretrained CV Inference Wrapper (`packages/cv-inference/`) | In Progress | Pending | Pending |
-| **Phase 3** | Deforestation Risk Layer (`packages/deforestation/`) | Not Started | Pending | Pending |
+| **Phase 2** | Pretrained CV Inference Wrapper (`packages/cv-inference/`) | Completed | Verified (SigLIP2 / Vision Tests OK) | Pushed (`main`) |
+| **Phase 3** | Deforestation Risk Layer (`packages/deforestation/`) | In Progress | Pending | Pending |
 | **Phase 4** | Hardware Firmware & Edge Gateway (`apps/firmware/`, `apps/edge-gateway/`) | Not Started | Pending | Pending |
 | **Phase 5** | Weather API Integration (`apps/edge-gateway/fusion/`) | Not Started | Pending | Pending |
 | **Phase 6** | Rule-Based Multi-Modal Fusion Engine (`packages/fusion-engine/`) | Not Started | Pending | Pending |
@@ -54,5 +54,19 @@
   - [x] All 4 unit tests passing (`Ran 4 tests ... OK`).
   - [x] Working: Yes.
 
+### Phase 2: Pretrained Computer Vision Model Wrapper (`packages/cv-inference/`)
+- **Task**: Implement wrapper around pretrained SigLIP2 `prithivMLmods/Forest-Fire-Detection` image classifier, support multi-format image inputs (PIL, JPEG bytes, OpenCV array), compute continuous normalized vision risk score, build edge gateway vision service with caching, and create comprehensive unit tests.
+- **Why**: Optical flame and smoke detection from camera frames provides direct visual confirmation for the multi-modal fusion engine, significantly cutting false alarm rates when sensor readings fluctuate due to ambient weather.
+- **What was done**:
+  - Built `packages/cv-inference/infer.py`: Implemented `VisionFireClassifier` with `SiglipImageProcessorPil` and `AutoModelForImageClassification` / fallback combustion heuristic, returning Fire/Normal/Smoke probability distribution and continuous `vision_score` $[0.0, 1.0]$.
+  - Built `apps/edge-gateway/inference/vision_service.py`: Gateway inference integration layer with frame rate throttling (`min_inference_interval_sec`), latency measurement, result caching, and safe error boundaries for Raspberry Pi edge gateways.
+  - Built `packages/cv-inference/tests/test_vision.py`: 4 unit tests testing image conversions (PIL, bytes, numpy), vision score bounds $[0.0, 1.0]$, fire vs normal contrast, and gateway caching.
+- **Status / Verification**:
+  - [x] Model wrapper supports PIL Image, bytes, and OpenCV numpy arrays.
+  - [x] Gateway service handles frame caching and avoids CPU saturation.
+  - [x] All 4 unit tests passing (`Ran 4 tests ... OK`).
+  - [x] Working: Yes.
+
 ---
+
 
