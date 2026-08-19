@@ -17,9 +17,9 @@
 | **Phase 2** | Pretrained CV Inference Wrapper (`packages/cv-inference/`) | Completed | Verified (SigLIP2 / Vision Tests OK) | Pushed (`main`) |
 | **Phase 3** | Deforestation Risk Layer (`packages/deforestation/`) | Completed | Verified (Sentinel-2 NDVI / Spatial Cache OK) | Pushed (`main`) |
 | **Phase 4** | Hardware Firmware & Edge Gateway (`apps/firmware/`, `apps/edge-gateway/`) | Completed | Verified (ESP32 Ingest API / Tests OK) | Pushed (`main`) |
-| **Phase 5** | Weather API Integration (`apps/edge-gateway/fusion/`) | In Progress | Pending | Pending |
-| **Phase 6** | Rule-Based Multi-Modal Fusion Engine (`packages/fusion-engine/`) | Not Started | Pending | Pending |
-| **Phase 7** | Minimal Web Dashboard (`apps/dashboard/`) | Not Started | Pending | Pending |
+| **Phase 5** | Weather API Integration (`apps/edge-gateway/fusion/`) | Completed | Verified (OpenWeather API / Cache OK) | Pushed (`main`) |
+| **Phase 6** | Rule-Based Multi-Modal Fusion Engine (`packages/fusion-engine/`) | Completed | Verified (Weighted Scoring / Tiers OK) | Pushed (`main`) |
+| **Phase 7** | Minimal Web Dashboard (`apps/dashboard/`) | In Progress | Pending | Pending |
 
 ---
 
@@ -93,10 +93,27 @@
   - [x] Firmware sketches created for Arduino IDE & PlatformIO with full pin definitions and LiFePO4 power telemetry.
   - [x] Edge gateway endpoints validated with Pydantic schemas.
   - [x] All 5 gateway unit tests passing (`Ran 5 tests in 12.173s ... OK`).
-  - [x] Total 17 unit tests passing across all 4 project packages.
+  - [x] Working: Yes.
+
+### Phase 5 & 6: Weather API Integration & Multi-Modal Fusion Engine (`apps/edge-gateway/fusion/`, `packages/fusion-engine/`)
+- **Task**: Integrate real-time meteorological API service with TTL caching and thermal/wind threat scoring, build multi-modal weighted fusion scoring engine ($40\%$ Sensor, $30\%$ Vision, $20\%$ Weather, $10\%$ Deforestation), assign severity tiers (🟢 Safe, 🟡 Warning, 🟠 High Risk, 🔴 Fire Detected), implement optical flame safety override, build gateway fusion manager, and expose REST fusion endpoint.
+- **Why**: Multi-modal fusion synthesizes disparate edge signals (ground sensors, optical camera vision, atmospheric weather, satellite vegetation indices) to make a reliable early-warning determination with minimal false alarms.
+- **What was done**:
+  - Built `apps/edge-gateway/fusion/weather_service.py`: Queries OpenWeatherMap / regional meteorological model, computes `weather_score` $[0.0, 1.0]$ based on Canadian FWI principles (thermal dryness index, wind spread multiplier, rain suppression), and implements a 15-minute memory cache.
+  - Built `packages/fusion-engine/fusion.py`: Implemented `MultiModalFusionEngine` calculating weighted confidence score $\text{Confidence} = (0.4 \times S) + (0.3 \times V) + (0.2 \times W) + (0.1 \times D)$, mapping to 4 severity tiers with emoji badges, and active flame override logic.
+  - Built `apps/edge-gateway/fusion/fusion_manager.py`: Orchestrates live inputs across all 4 pillars and exposes `GET /api/v1/fusion/score` on the edge gateway FastAPI server.
+  - Built `packages/fusion-engine/tests/test_fusion.py`: 6 unit tests verifying weather threat scoring, cache TTL, exact fusion math, tier boundaries, flame override, and gateway endpoint integration.
+- **Status / Verification**:
+  - [x] Weather scoring correctly maps hot/dry/windy to high risk ($\ge 0.70$) and rain to low risk ($\le 0.15$).
+  - [x] Fusion engine computes weighted sums and maps severity tiers accurately.
+  - [x] Safety override guarantees critical alert on physical flame detection.
+  - [x] Gateway endpoint `/api/v1/fusion/score` returns complete structured multi-modal breakdown.
+  - [x] All 6 fusion unit tests passing (`Ran 6 tests in 0.017s ... OK`).
+  - [x] Total 23 unit tests passing across all 6 project modules.
   - [x] Working: Yes.
 
 ---
+
 
 
 

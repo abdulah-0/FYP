@@ -23,14 +23,18 @@ root_dir = Path(__file__).resolve().parents[3]
 ml_pkg_path = str(root_dir / "packages" / "ml-classifier")
 cv_pkg_path = str(root_dir / "packages" / "cv-inference")
 gateway_inference_path = str(Path(__file__).resolve().parents[1] / "inference")
+gateway_fusion_path = str(Path(__file__).resolve().parents[1] / "fusion")
+fusion_pkg_path = str(root_dir / "packages" / "fusion-engine")
+deforest_pkg_path = str(root_dir / "packages" / "deforestation")
 
-for p in [ml_pkg_path, cv_pkg_path, gateway_inference_path]:
+for p in [ml_pkg_path, cv_pkg_path, gateway_inference_path, gateway_fusion_path, fusion_pkg_path, deforest_pkg_path]:
     if p not in sys.path:
         sys.path.insert(0, p)
 
 from models import IngestCameraResponse, IngestSensorResponse, SensorTelemetryPayload
 from predict import SensorFireClassifier
 from vision_service import GatewayVisionService
+from fusion_manager import get_gateway_fusion_manager
 
 logging.basicConfig(
     level=logging.INFO,
@@ -271,6 +275,45 @@ def get_telemetry_history(limit: int = 50):
         "limit": limit,
         "records": history_list[-limit:]
     }
+
+
+@app.get("/api/v1/fusion/score")
+def get_live_fusion_score():
+    """
+    Computes and returns real-time multi-modal fire risk score
+    combining latest IoT sensor telemetry, camera vision inference,
+    ambient weather, and satellite deforestation layer.
+    """
+    manager = get_gateway_fusion_manager()
+
+    s_score = 0.0
+    lat = manager.default_lat
+    lon = manager.default_lon
+    flame_detected = False
+
+    if latest_sensor_telemetry is not None:
+        pred = latest_sensor_telemetry.get("prediction", {})
+        s_score = float(pred.get("sensor_score", 0.0))
+        lat = latest_sensor_telemetry.get("latitude", lat)
+        lon = latest_sensor_telemetry.get("longitude", lon)
+        flame_detected = latest_sensor_telemetry.get("telemetry", {}).get("flame_detected", False)
+
+    v_score = 0.0
+    v_conf = 0.0
+    if latest_vision_telemetry is not None:
+        v_score = float(latest_vision_telemetry.get("vision_score", 0.0))
+        if latest_vision_telemetry.get("predicted_label") == "Fire":
+            v_conf = float(latest_vision_telemetry.get("confidence", 0.0))
+
+    assessment = manager.evaluate_live_risk(
+        sensor_score=s_score,
+        vision_score=v_score,
+        lat=lat,
+        lon=lon,
+        flame_detected=flame_detected,
+        vision_confidence=v_conf
+    )
+    return assessment
 
 
 SERVER_START_TIME = time.time()
